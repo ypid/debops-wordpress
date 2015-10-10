@@ -26,7 +26,7 @@
   sudo_user: '{{ wordpress_user }}'
   args:
     chdir: '{{ wordpress_root }}'
-  when: item.name|d() and item.install|d(True) and item.name not in wordpress_plugin_installed_list
+  when: item.name|d() and (item.install|d(True) | bool) and item.name not in wordpress_plugin_installed_list
   with_items: wordpress_plugins
 
 - name: Activate WordPress plugins
@@ -34,8 +34,7 @@
   sudo_user: '{{ wordpress_user }}'
   args:
     chdir: '{{ wordpress_root }}'
-  when: item.name|d() and item.enable|d(True) and item.name not in wordpress_plugin_active_list
-  # 'item.enable is not defined or (item.enable is defined and item.enable)' -> not item.enable|d(True)
+  when: item.name|d() and (item.enable|d(True) | bool) and item.name not in wordpress_plugin_active_list
   with_items: wordpress_plugins
 
 - name: Update WordPress plugins
@@ -45,7 +44,7 @@
     chdir: '{{ wordpress_root }}'
   register: wordpress_plugin_update_cmd
   changed_when: ('Updated 0/0 plugins' not in wordpress_plugin_update_cmd.stdout)
-  when: item.name|d() and item.latest|d() and item.name in wordpress_plugin_installed_list
+  when: item.name|d() and (item.latest|d() | bool) and item.name in wordpress_plugin_installed_list
   with_items: wordpress_plugins
 
 - name: Deactivate WordPress plugins
@@ -53,7 +52,7 @@
   sudo_user: '{{ wordpress_user }}'
   args:
     chdir: '{{ wordpress_root }}'
-  when: item.name|d() and not item.enable|d(True) and item.name in wordpress_plugin_active_list
+  when: item.name|d() and not (item.enable|d(True) | bool) and item.name in wordpress_plugin_active_list
   with_items: wordpress_plugins
 
 - name: Uninstall WordPress plugins
@@ -61,5 +60,5 @@
   sudo_user: '{{ wordpress_user }}'
   args:
     chdir: '{{ wordpress_root }}'
-  when: item.name|d() and not item.install|d(True) and item.name in wordpress_plugin_installed_list
+  when: item.name|d() and not (item.install|d(True) | bool) and item.name in wordpress_plugin_installed_list
   with_items: wordpress_plugins

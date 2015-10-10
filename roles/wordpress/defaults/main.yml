@@ -215,7 +215,7 @@ wordpress_domain: '{{ inventory_hostname }}'
 # Manage plugins.
 wordpress_plugins:
   - name: 'akismet'
-    # install: no
+    # install: yes
     # enable: yes
     # latest: yes
 
