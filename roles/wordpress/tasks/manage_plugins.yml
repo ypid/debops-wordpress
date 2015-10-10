@@ -1,0 +1,65 @@
+---
+
+- name: Get list of installed WordPress plugins
+  command: 'wp plugin list --format=json'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  changed_when: False
+  always_run: True
+  register: wordpress_plugin_list_installed_cmd
+
+- name: Convert list of installed WordPress plugins from JSON
+  set_fact:
+    wordpress_plugin_installed_dict: '{{ wordpress_plugin_list_installed_cmd.stdout|from_json }}'
+
+- name: Set list of installed WordPress plugins
+  set_fact:
+    wordpress_plugin_installed_list: '{{ wordpress_plugin_installed_dict|map(attribute="name")|list }}'
+    wordpress_plugin_active_list: '{{ wordpress_plugin_installed_dict|selectattr("status", "equalto", "active")|map(attribute="name")|list }}'
+
+- debug:
+    var: 'wordpress_plugin_installed_dict'
+
+- name: Install WordPress plugins
+  command: 'wp plugin install "{{ item.name }}"'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  when: item.name|d() and item.install|d(True) and item.name not in wordpress_plugin_installed_list
+  with_items: wordpress_plugins
+
+- name: Activate WordPress plugins
+  command: 'wp plugin activate "{{ item.name }}"'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  when: item.name|d() and item.enable|d(True) and item.name not in wordpress_plugin_active_list
+  # 'item.enable is not defined or (item.enable is defined and item.enable)' -> not item.enable|d(True)
+  with_items: wordpress_plugins
+
+- name: Update WordPress plugins
+  command: 'wp plugin update "{{ item.name }}"'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  register: wordpress_plugin_update_cmd
+  changed_when: ('Updated 0/0 plugins' not in wordpress_plugin_update_cmd.stdout)
+  when: item.name|d() and item.latest|d() and item.name in wordpress_plugin_installed_list
+  with_items: wordpress_plugins
+
+- name: Deactivate WordPress plugins
+  command: 'wp plugin deactivate "{{ item.name }}"'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  when: item.name|d() and not item.enable|d(True) and item.name in wordpress_plugin_active_list
+  with_items: wordpress_plugins
+
+- name: Uninstall WordPress plugins
+  command: 'wp plugin uninstall --deactivate "{{ item.name }}"'
+  sudo_user: '{{ wordpress_user }}'
+  args:
+    chdir: '{{ wordpress_root }}'
+  when: item.name|d() and not item.install|d(True) and item.name in wordpress_plugin_installed_list
+  with_items: wordpress_plugins

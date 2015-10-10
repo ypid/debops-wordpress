@@ -210,6 +210,16 @@ wordpress_title: '{{ wordpress_domain }}'
 wordpress_domain: '{{ inventory_hostname }}'
 
 
+# .. envvar:: wordpress_plugins
+#
+# Manage plugins.
+wordpress_plugins:
+  - name: 'akismet'
+    # install: no
+    # enable: yes
+    # latest: yes
+
+
 # ---------------------------
 #   WordPress multisite configuration ----
 # ---------------------------

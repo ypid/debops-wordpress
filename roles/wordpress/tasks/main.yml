@@ -47,7 +47,7 @@
   command: 'wp core install --title="{{ wordpress_title }}" --admin_user="{{ wordpress_admin_username }}" --admin_password="{{ wordpress_admin_password }}" --admin_email="{{ wordpress_admin_email }}"'
   sudo_user: '{{ wordpress_user }}'
   args:
-    chdir: "{{ wordpress_root }}"
+    chdir: '{{ wordpress_root }}'
   when: ((wordpress_installed is defined and wordpress_installed.rc == 1) and
          (wordpress_multisite is defined and not wordpress_multisite))
 
@@ -55,7 +55,7 @@
   command: 'wp core multisite-install --base="{{ wordpress_multisite_path }}" {{ "--subdomains" if wordpress_multisite_subdomains else "" }} --title="{{ wordpress_title }}" --admin_user="{{ wordpress_admin_username }}" --admin_password="{{ wordpress_admin_password }}" --admin_email="{{ wordpress_admin_email }}"'
   sudo_user: '{{ wordpress_user }}'
   args:
-    chdir: "{{ wordpress_root }}"
+    chdir: '{{ wordpress_root }}'
   when: ((wordpress_installed is defined and wordpress_installed.rc == 1) and
          (wordpress_multisite is defined and wordpress_multisite))
 
@@ -65,3 +65,6 @@
     job: 'curl {{ "-k https" if wordpress_ssl|d() else "http" }}://{{ wordpress_domain }}/wp-cron.php > /dev/null 2>&1'
     user: '{{ wordpress_user }}'
     cron_file: '{{ wordpress_domain | replace(".", "_") }}'
+
+- include: manage_plugins.yml
+  tags: [ 'role::wordpress:plugins' ]
