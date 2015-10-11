@@ -218,6 +218,10 @@ wordpress_plugins:
     # install: yes
     # enable: yes
     # latest: yes
+  # - name: 'varnish-http-purge'
+  - name: 'redis-cache'
+  # - name: 'tiny-compress-images'
+  - name: 'ricg-responsive-images'
 
 
 # ---------------------------
